@@ -4,8 +4,11 @@ import { db } from "./firebase";
 function App() {
   const [tasks, setTasks] = useState([]);
   const [task, setTask] = useState("");
+  const [editMode, setEditMode] = useState(false);
+  const [idEdit, setIdEdit] = useState("");
 
   const collection = () => db.collection("tasks");
+  const validateIsEmpty = () => console.log("Não pode ficar vazio");
 
   useEffect(() => {
     const getData = async () => {
@@ -30,7 +33,7 @@ function App() {
     e.preventDefault();
 
     if (!task.trim()) {
-      return console.log("Não pode ficar vazio");
+      return validateIsEmpty();
     }
 
     try {
@@ -59,6 +62,37 @@ function App() {
     }
   };
 
+  const editTaskConfig = (item) => {
+    setEditMode(true);
+    setTask(item.name);
+    setIdEdit(item.id);
+  };
+
+  const editTask = async (e) => {
+    e.preventDefault();
+
+    if (!task.trim()) {
+      return validateIsEmpty();
+    }
+
+    try {
+      await collection().doc(idEdit).update({
+        name: task,
+      });
+
+      const editWithMap = tasks.map((item) =>
+        item.id === idEdit ? { id: item.id, date: item.date, name: task } : item
+      );
+
+      setTasks(editWithMap);
+      setTask("");
+      setEditMode(false);
+      setIdEdit("");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="container mt-3">
       <div className="row">
@@ -78,7 +112,10 @@ function App() {
                 >
                   Excluir
                 </button>
-                <button className="btn btn-warning btn-sm float-right mr-2">
+                <button
+                  className="btn btn-warning btn-sm float-right mr-2"
+                  onClick={() => editTaskConfig(item)}
+                >
                   Editar
                 </button>
               </li>
@@ -86,7 +123,8 @@ function App() {
           </ul>
         </div>
         <div className="col-md-6 mb-4 mb-md-0 order-1 order-md-2">
-          <form onSubmit={addTask}>
+          <h5>{editMode ? "Editar tarefa" : "Adicionar tarefa"}</h5>
+          <form onSubmit={editMode ? editTask : addTask}>
             <input
               type="text"
               placeholder="Adicione sua tarefa aqui"
@@ -94,8 +132,14 @@ function App() {
               onChange={(e) => setTask(e.target.value)}
               value={task}
             />
-            <button type="submit" className="btn btn-dark btn-block">
-              Adicionar
+            {/* className="btn btn-dark btn-block" */}
+            <button
+              type="submit"
+              className={
+                editMode ? "btn btn-info btn-block" : "btn btn-dark btn-block"
+              }
+            >
+              {editMode ? "Editar" : "Adicionar"}
             </button>
           </form>
         </div>
