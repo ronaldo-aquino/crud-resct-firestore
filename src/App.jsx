@@ -47,24 +47,49 @@ function App() {
     }
   };
 
+  const deleteTask = async (id) => {
+    try {
+      await collection().doc(id).delete();
+
+      const deleteWithFilter = tasks.filter((item) => item.id !== id);
+
+      setTasks(deleteWithFilter);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="container mt-3">
       <div className="row">
-        <div className="col-md-6">
+        <div className="col-12">
+          <h3 className="text-center m-4">Gestão de tarefas</h3>
+        </div>
+      </div>
+      <div className="row">
+        <div className="col-md-6 order-2 order-md-1">
           <ul className="list-group">
             {tasks.map((item) => (
               <li className="list-group-item" key={item.id}>
                 {item.name}
+                <button
+                  className="btn btn-danger btn-sm float-right"
+                  onClick={() => deleteTask(item.id)}
+                >
+                  Excluir
+                </button>
+                <button className="btn btn-warning btn-sm float-right mr-2">
+                  Editar
+                </button>
               </li>
             ))}
           </ul>
         </div>
-        <div className="col-md-6">
-          <h3>Adicionar Tarefa</h3>
+        <div className="col-md-6 mb-4 mb-md-0 order-1 order-md-2">
           <form onSubmit={addTask}>
             <input
               type="text"
-              plaveholder="Adicione sua tarefa"
+              placeholder="Adicione sua tarefa aqui"
               className="form-control mb-2"
               onChange={(e) => setTask(e.target.value)}
               value={task}
